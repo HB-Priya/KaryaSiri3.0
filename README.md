@@ -1,4 +1,4 @@
-# Karyasiri — MERN job matching platform
+# Karyasiri - MERN job matching platform
 
 Karyasiri matches physically disabled candidates with suitable jobs (IT, retail/grocery,
 textile, accounting, cleaning, customer service, warehouse, design, etc.) based on their
