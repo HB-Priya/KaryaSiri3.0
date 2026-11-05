@@ -1,152 +1,611 @@
-# Karyasiri - MERN job matching platform
+# Karya Siri – AI-Driven Inclusive Job Accessibility Platform
 
-Karyasiri matches physically disabled candidates with suitable jobs (IT, retail/grocery,
-textile, accounting, cleaning, customer service, warehouse, design, etc.) based on their
-skills, interests, qualifications, resume, and stated accessibility needs — with screen-reader
-and voice tools built into the interface for blind and low-vision users.
+**Connecting Persons with Disabilities to Meaningful Employment Opportunities.**
 
-Stack: **M**ongoDB, **E**xpress, **R**eact (Vite), **N**ode.
+Karya Siri is a MERN-stack-based inclusive job-matching platform designed to improve employment accessibility for persons with disabilities (Divyangjan). It connects candidates with suitable job opportunities across multiple industries based on their skills, interests, qualifications, resume information, and accessibility requirements.
 
+The platform combines accessibility-aware job recommendations, an AI-powered Career Mentor, government welfare scheme discovery, and skill-development resources to support candidates throughout their employment journey.
+
+It also provides screen-reader-friendly navigation, voice interaction, speech-to-text, text-to-speech, and multilingual support to make the platform accessible to blind and low-vision users.
+
+---
+
+## Key Features
+
+- **Inclusive Job Matching:** Matches candidates with suitable opportunities based on skills, interests, qualifications, resume information, and accessibility requirements.
+- **Accessibility-Aware Recommendations:** Considers disability-specific accommodation requirements, including screen-reader compatibility and remote work.
+- **AI Career Mentor:** Provides personalized career guidance, course recommendations, profile assistance, and government scheme information.
+- **UDID-Based Eligibility Support:** Supports disability-related eligibility and verification workflows.
+- **Government Schemes Hub:** Provides information and official links to government schemes for persons with disabilities.
+- **Skill Development:** Integrates free and low-cost courses from government and recognized learning platforms.
+- **Multilingual Interface:** Supports English, Hindi, Tamil, Telugu, Bengali, and Marathi.
+- **Voice Accessibility:** Includes speech recognition, text-to-speech, voice navigation, and read-aloud functionality.
+- **Candidate and Employer Portals:** Supports candidate registration, job applications, employer registration, and job posting.
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React.js, Vite, Tailwind CSS |
+| Backend | Node.js, Express.js |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT, bcrypt |
+| AI Integration | Anthropic API (Career Mentor) |
+| Frontend Visualization | Recharts |
+| Accessibility | Web Speech API, SpeechRecognition, SpeechSynthesis |
+| Internationalization | React-based static translation dictionary |
+| Development Tools | Git, GitHub, Postman, VS Code |
+
+## System Architecture
+
+Karya Siri follows a client-server architecture using the MERN stack.
+
+```mermaid
+flowchart TD
+    A[React + Vite Frontend] --> B[Express REST API]
+    B --> C[Authentication & Authorization]
+    B --> D[Job Matching Engine]
+    B --> E[Career Mentor]
+    B --> F[Profile & Application Management]
+    B --> G[Schemes & Courses]
+    C --> H[(MongoDB)]
+    D --> H
+    E --> I[Anthropic API]
+    E --> J[Knowledge Base]
+    F --> H
 ```
+
+### Project Structure
+
+```text
 karyasiri/
-  server/   Express + Mongoose REST API
-  client/   React (Vite) front end
+│
+├── server/
+│   ├── data/
+│   │   └── knowledge.js
+│   ├── models/
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── profile.js
+│   │   ├── jobs.js
+│   │   ├── applications.js
+│   │   └── mentor.js
+│   ├── utils/
+│   │   └── matching.js
+│   ├── .env.example
+│   ├── server.js
+│   └── package.json
+│
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── i18n/
+│   │   │   └── translations.js
+│   │   └── styles/
+│   ├── .env.example
+│   └── package.json
+│
+└── README.md
 ```
 
-## 1. Prerequisites
+*The directory structure above represents the main application components. Refer to the repository for the complete implementation.*
 
-- Node.js 18+
-- A MongoDB database — either local (`mongodb://127.0.0.1:27017`) or a free
-  [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
+---
 
-## 2. Backend setup
+## Prerequisites
+
+Ensure the following software is installed:
+
+- Node.js 18 or later
+- npm
+- MongoDB (local installation or MongoDB Atlas)
+- Git
+
+**Database:** You can use either a local MongoDB instance or a free MongoDB Atlas cluster.
+
+MongoDB Atlas: https://www.mongodb.com/atlas
+
+---
+
+## Installation and Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd karyasiri
+```
+
+### 2. Backend Setup
+
+Navigate to the server directory:
 
 ```bash
 cd server
-cp .env.example .env
-# edit .env: set MONGO_URI and a real JWT_SECRET
-npm install
-npm run seed     # loads 13 sample jobs into the database
-npm run dev       # starts the API on http://localhost:5000 (nodemon)
-# or: npm start
 ```
 
-Health check: `GET http://localhost:5000/api/health`
+Create the environment configuration file:
 
-### API overview
+```bash
+cp .env.example .env
+```
 
-| Method | Route                         | Auth              | Purpose                                  |
-|--------|--------------------------------|-------------------|-------------------------------------------|
-| POST   | /api/auth/register             | —                 | Create a candidate or employer account    |
-| POST   | /api/auth/login                | —                 | Log in, returns JWT                       |
-| GET    | /api/auth/me                   | Bearer token       | Current user                              |
-| GET    | /api/profile                   | candidate          | Get my profile                            |
-| PUT    | /api/profile                   | candidate          | Create/update my profile                  |
-| POST   | /api/profile/complete-course    | candidate          | Mark a skill course complete; adds its skills to your profile |
-| GET    | /api/jobs                      | —                 | List jobs (optional `?category=`)         |
-| GET    | /api/jobs/matches               | candidate          | Jobs scored/sorted against my profile     |
-| GET    | /api/jobs/:id                   | —                 | Job detail                                |
-| POST   | /api/jobs                       | employer          | Post a job                                |
-| GET    | /api/jobs/employer/mine         | employer          | My posted jobs                            |
-| POST   | /api/applications                | candidate          | Apply to a job                            |
-| GET    | /api/applications/me             | candidate          | My applications                           |
-| GET    | /api/applications/job/:jobId     | employer (owner)   | Applicants for one of my jobs             |
-| POST   | /api/mentor/chat                 | optional (soft)     | Career Mentor chatbot — personalized if logged in as candidate |
+Configure the required environment variables in `server/.env`:
 
-## 3. Frontend setup
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/karyasiri
+JWT_SECRET=your_secure_jwt_secret
+CLIENT_URL=http://localhost:5173
+
+# Career Mentor Configuration
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_MODEL=your_supported_model
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Seed the database with sample job listings:
+
+```bash
+npm run seed
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Alternatively, start the server using:
+
+```bash
+npm start
+```
+
+The backend API will be available at:
+
+`http://localhost:5000`
+
+**Health Check:**
+
+```http
+GET http://localhost:5000/api/health
+```
+
+### 3. Frontend Setup
+
+Open a new terminal and navigate to the client directory:
 
 ```bash
 cd client
-cp .env.example .env    # VITE_API_URL defaults to http://localhost:5000/api
-npm install
-npm run dev              # starts on http://localhost:5173
 ```
 
-Open http://localhost:5173.
+Create the environment configuration file:
 
-## 4. How matching works
+```bash
+cp .env.example .env
+```
 
-`server/utils/matching.js` tokenizes the candidate's skills + interests + qualifications +
-resume text and compares it against each job's required skills/description (keyword overlap),
-then adds a bonus when the job's stated accommodations line up with the candidate's selected
-disability type (e.g. "blind / low vision" boosts jobs tagged `screenreader` or `remote`).
-This produces a 0–100 match score used to sort `/api/jobs/matches` and shown as a radial
-match meter in the UI. It's intentionally simple and transparent — swap in a smarter model
-(embeddings, resume parsing, etc.) later without changing the API shape.
+Configure the API URL:
 
-## 5. Career Mentor chatbot (new)
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
-A floating chat widget ("🧑‍🏫 Career Mentor", bottom-right on every page) answers candidate
-questions about which government scheme fits them, which skill course to take, how to fill
-in their profile or a job application, and which jobs suit them.
+Install dependencies:
 
-- **Backend**: `POST /api/mentor/chat` (`server/routes/mentor.js`) calls the Anthropic API
-  server-side — the API key never reaches the browser. It's grounded in
-  `server/data/knowledge.js`, a condensed copy of the real schemes/courses shown on the site
-  (kept in sync manually with `client/src/pages/Schemes.jsx` / `Courses.jsx`), plus a live
-  sample of currently-open jobs pulled from MongoDB, so it names real things instead of
-  hallucinating. If the candidate is logged in, their profile (skills, disabilities,
-  completed courses) is added to the system prompt for personalized answers; if not, it still
-  works and gives general guidance.
-- **Setup**: get an API key at console.anthropic.com (paid API — check current pricing there)
-  and set `ANTHROPIC_API_KEY` in `server/.env`. Without a key set, the widget doesn't crash —
-  the backend returns a clear "not configured yet" message instead. Check
-  [docs.claude.com](https://docs.claude.com) for the current recommended model string if you
-  want to change `ANTHROPIC_MODEL` from the default.
-- **Error handling**: every failure mode (missing key, bad key, rate limit, Anthropic API
-  outage, malformed request, network failure) is caught and shown as a friendly inline message
-  with a "Try again" button — the chat never throws an unhandled error at the user.
-- **Accessibility**: the mic button dictates a question (same speech-to-text used elsewhere on
-  the site), each reply has a "🔊 read aloud" button, and the widget responds in whichever of
-  the 6 supported languages is currently selected.
+```bash
+npm install
+```
 
-## 6. Schemes, courses and multilingual support
+Start the frontend development server:
 
-- **`/schemes`** — a public page of Indian government schemes for persons with disabilities
-  (ADIP, NHFDC loans, UDID card, PM-DAKSH, DDRS, Sugamya Bharat Abhiyan, NCS-PwD portal, etc.).
-  Each "Visit official site" button opens the **real government website** in a new tab —
-  nothing is faked or proxied.
-- **`/courses`** — a public page of free/low-cost skill courses from Indian government
-  platforms (NIELIT, PMKVY/Skill India, SWAYAM, NCFE, NIOS, NSDC) covering cooking, tailoring,
-  computers, retail, spoken English, electronics, and more. Clicking a course opens the real
-  course/provider site in a new tab. Logged-in candidates see a **"Mark as completed"** button;
-  marking a course complete calls `POST /api/profile/complete-course`, which records the
-  completion on the candidate's profile *and automatically appends that course's skill tags to
-  their `skills` field* — so completed courses immediately improve their job match scores.
-- **5 Indian languages** — the interface (navigation, hero, how-it-works, footer, schemes,
-  courses) can be switched between **English, Hindi, Tamil, Telugu, Bengali and Marathi** via
-  the language selector in the access bar. Translations live in
-  `client/src/i18n/translations.js`; add more keys/languages there. This is a static UI
-  dictionary (no external translation API call, so it works offline and has no per-request
-  cost) — extend it with more keys as you translate more of the UI.
+```bash
+npm run dev
+```
 
-## 7. Design system
+Open the application in your browser:
 
-Restyled to match the reference Karyasiri UI: **Outfit** (display/headings) + **Inter** (body)
-fonts, a saffron/forest-green palette (`--gold:#FE6B00`, `--teal:#008166`) evoking the Indian
-flag, bold uppercase headlines with an italic accent word, pill-shaped eyebrow badges, and
-large rounded cards with soft shadows. All tokens are CSS variables in
-`client/src/styles/index.css` — change them there to re-theme the whole app.
+`http://localhost:5173`
 
-## 8. Accessibility features
+---
 
-- Skip-to-content link, semantic HTML, labeled form fields, visible focus states throughout
-- Fixed **access bar**: text size (A− / A / A+), high-contrast theme toggle, "read page aloud"
-  (Web Speech `SpeechSynthesis`), and a voice-navigation command ("go to jobs", "go to profile")
-- **Mic buttons** next to every long text field (skills, interests, qualifications, resume,
-  cover message) using `SpeechRecognition` for dictation instead of typing
-- "🔊 Listen" on every job card and a "Read job description aloud" button on the job detail /
-  apply page
-- `aria-live` announcements on key actions (login, profile saved, matches found, application
-  submitted)
+## API Documentation
 
-Voice features (dictation + read aloud) require a Chromium-based browser (Chrome, Edge) with
-microphone permission; the rest of the site works in any modern browser.
+The backend exposes RESTful APIs for authentication, candidate profiles, job management, applications, and career assistance.
 
-## 9. Notes / next steps for production
+### Authentication APIs
 
-- Passwords are hashed with bcrypt and auth uses JWT — for production, add refresh tokens,
-  rate limiting, and HTTPS-only cookies instead of `localStorage` if you want to harden it further.
-- Add real resume upload + parsing (PDF/DOCX) instead of pasted text.
-- Add server-side validation library (e.g. `zod`/`joi`) and centralized error handling.
-- Add pagination to `/api/jobs` once the job count grows.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a candidate or employer |
+| POST | `/api/auth/login` | Authenticate and receive JWT |
+| GET | `/api/auth/me` | Retrieve authenticated user details |
+
+### Candidate Profile APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/profile` | Retrieve candidate profile |
+| PUT | `/api/profile` | Create or update candidate profile |
+| POST | `/api/profile/complete-course` | Mark a course as completed and update profile skills |
+
+### Job APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/jobs` | Retrieve available jobs |
+| GET | `/api/jobs?category=IT` | Filter jobs by category |
+| GET | `/api/jobs/matches` | Retrieve personalized job matches |
+| GET | `/api/jobs/:id` | Retrieve job details |
+| POST | `/api/jobs` | Post a job (Employer) |
+| GET | `/api/jobs/employer/mine` | Retrieve jobs posted by an employer |
+
+### Application APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/applications` | Apply for a job |
+| GET | `/api/applications/me` | Retrieve candidate applications |
+| GET | `/api/applications/job/:jobId` | Retrieve applicants for an employer's job |
+
+### Career Mentor API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/mentor/chat` | Interact with the AI Career Mentor |
+
+**Authentication:** Protected endpoints require a valid JWT Bearer token. The Career Mentor supports optional authentication and provides personalized guidance when a candidate is logged in.
+
+---
+
+## How Job Matching Works
+
+The job recommendation engine is implemented in:
+
+`server/utils/matching.js`
+
+Karya Siri uses a transparent, rule-based keyword matching algorithm to identify suitable employment opportunities for candidates.
+
+### Matching Process
+
+1. **Candidate Information Extraction:** Collects skills, interests, qualifications, and resume text from the candidate profile.
+2. **Job Requirement Extraction:** Processes required skills and job descriptions from available job listings.
+3. **Keyword Comparison:** Tokenizes and compares candidate information with job requirements to identify overlapping skills and relevant keywords.
+4. **Accessibility Compatibility:** Evaluates whether the job's stated accommodations align with the candidate's accessibility requirements.
+5. **Match Score Calculation:** Generates a score between 0 and 100 for each job.
+6. **Job Ranking:** Sorts job opportunities based on their calculated match scores.
+
+### Accessibility-Aware Matching
+
+The recommendation engine considers disability-specific accommodation requirements.
+
+For example:
+
+- Blind or low-vision candidates can receive preference for jobs tagged with screen-reader compatibility.
+- Remote opportunities can improve accessibility compatibility for candidates who require flexible working arrangements.
+- Candidate skills and qualifications help identify relevant opportunities across different industries.
+
+The resulting match score is displayed through a radial match indicator in the frontend.
+
+**Note:** The current implementation uses a deterministic, transparent matching algorithm rather than a trained machine-learning ranking model. This allows the recommendation logic to remain interpretable and provides scope for future enhancements using embeddings and advanced resume-parsing techniques.
+
+---
+
+## AI-Powered Career Mentor
+
+Karya Siri includes an integrated AI Career Mentor, accessible through a floating chat widget available across application pages.
+
+The mentor helps candidates make informed decisions about employment, education, and government support.
+
+### Capabilities
+
+- Recommends suitable government schemes based on candidate requirements.
+- Suggests skill-development courses.
+- Provides guidance on completing candidate profiles.
+- Assists with job applications.
+- Offers personalized career guidance.
+- Answers employment-related questions.
+
+### Technical Implementation
+
+**Backend:** `server/routes/mentor.js`
+
+**Knowledge Base:** `server/data/knowledge.js`
+
+The Career Mentor uses the Anthropic API for generating conversational responses.
+
+Its knowledge base contains curated information about government schemes and skill-development courses available on the platform. It also retrieves a sample of currently available jobs from MongoDB to provide relevant employment suggestions.
+
+When a candidate is authenticated, their profile information, including skills, disability-related requirements, and completed courses, is incorporated into the mentor's context to generate personalized responses.
+
+For unauthenticated users, the mentor provides general career guidance.
+
+### Accessibility and Error Handling
+
+- Speech-to-text through the microphone button.
+- Text-to-speech through the read-aloud functionality.
+- Responses in the currently selected interface language.
+- Graceful handling of missing API keys, invalid credentials, rate limits, network failures, and API outages.
+- User-friendly error messages with retry functionality.
+
+### API Configuration
+
+Obtain an API key from:
+
+https://console.anthropic.com/
+
+Configure `ANTHROPIC_API_KEY` in `server/.env`.
+
+The API key is stored and used on the backend and is never exposed directly to the browser.
+
+An API key is required for live AI-generated responses. Without it, the application displays a configuration message instead of crashing.
+
+---
+
+## Government Schemes and Skill Development
+
+### 1. Government Schemes Hub
+
+The `/schemes` page provides information about government initiatives and welfare schemes supporting persons with disabilities.
+
+The platform includes information about:
+
+- ADIP Scheme
+- NHFDC Loans
+- Unique Disability ID (UDID)
+- PM-DAKSH
+- Deendayal Disabled Rehabilitation Scheme (DDRS)
+- Sugamya Bharat Abhiyan
+- National Career Service (NCS-PwD) Portal
+
+Each scheme provides relevant information and links to its official government website.
+
+### 2. Skill Development Courses
+
+The `/courses` page provides access to free and affordable skill-development opportunities from government and recognized learning platforms.
+
+Supported learning providers include:
+
+- NIELIT
+- PMKVY / Skill India
+- SWAYAM
+- NCFE
+- NIOS
+- NSDC
+
+Courses cover multiple skill areas, including:
+
+- Computer literacy and digital skills
+- Cooking and tailoring
+- Retail and customer service
+- Spoken English
+- Electronics and technical skills
+
+### Course Completion Integration
+
+Authenticated candidates can mark courses as completed.
+
+The application uses:
+
+`POST /api/profile/complete-course`
+
+Upon completion:
+
+1. The course completion is recorded in the candidate profile.
+2. Relevant skill tags associated with the course are added to the candidate's skills.
+3. The updated skills become available to the job-matching engine.
+4. Newly acquired skills can improve the candidate's compatibility with relevant job opportunities.
+
+This connects skill development directly with employment recommendations.
+
+---
+
+## Multilingual Support
+
+Karya Siri provides a multilingual interface supporting six languages:
+
+| Language | Support |
+|---|---|
+| English | ✓ |
+| Hindi | ✓ |
+| Tamil | ✓ |
+| Telugu | ✓ |
+| Bengali | ✓ |
+| Marathi | ✓ |
+
+Users can switch languages using the language selector in the accessibility bar.
+
+Translations are maintained in:
+
+`client/src/i18n/translations.js`
+
+The application uses a static translation dictionary for the supported interface components, including navigation, hero sections, instructions, footer content, schemes, and courses.
+
+This approach allows the translated interface to work without requiring an external translation API for every request.
+
+---
+
+## Accessibility Features
+
+Accessibility is a core design consideration throughout Karya Siri.
+
+The platform incorporates features to support users with different accessibility requirements, particularly blind and low-vision candidates.
+
+### 1. Screen Reader Support
+
+- Semantic HTML elements.
+- Accessible labels for form fields and interactive controls.
+- Skip-to-content navigation.
+- Visible keyboard focus indicators.
+- ARIA live announcements for important application actions.
+
+### 2. Voice Navigation
+
+A voice-navigation feature enables users to navigate application pages using spoken commands.
+
+Examples:
+
+- "Go to jobs"
+- "Go to profile"
+
+### 3. Speech-to-Text
+
+Microphone buttons are available alongside supported text fields, including:
+
+- Skills
+- Interests
+- Qualifications
+- Resume information
+- Cover messages
+
+Candidates can dictate information instead of typing it manually.
+
+### 4. Text-to-Speech
+
+Read-aloud functionality is available for:
+
+- Entire page content.
+- Individual job cards.
+- Job descriptions.
+- Career Mentor responses.
+
+### 5. Visual Accessibility
+
+The fixed accessibility bar provides:
+
+- Text size controls (A− / A / A+).
+- High-contrast theme toggle.
+- Read-page-aloud functionality.
+- Voice-navigation support.
+
+### Browser Compatibility
+
+Voice-based features use browser-supported Web Speech APIs.
+
+Speech recognition and speech synthesis are best supported in Chromium-based browsers such as Google Chrome and Microsoft Edge. Microphone permission is required for speech recognition.
+
+Other accessibility features are designed to work across modern browsers.
+
+---
+
+## Design System
+
+Karya Siri follows a modern, accessible visual design inspired by Indian cultural colors and inclusive design principles.
+
+### Design Elements
+
+- **Typography:** Outfit for headings and Inter for body text.
+- **Primary Accent:** Saffron (`#FE6B00`).
+- **Secondary Accent:** Forest Green (`#008166`).
+- **UI Components:** Rounded cards, pill-shaped badges, and soft shadows.
+- **Accessibility:** Clear visual hierarchy, readable typography, and visible interaction states.
+
+The design system uses CSS custom properties maintained in:
+
+`client/src/styles/index.css`
+
+This allows consistent styling and centralized theme customization throughout the application.
+
+---
+
+## Environment Variables
+
+The following table summarizes the main configuration variables.
+
+| Variable | Location | Purpose |
+|---|---|---|
+| `PORT` | Server | Backend server port |
+| `MONGO_URI` | Server | MongoDB connection string |
+| `JWT_SECRET` | Server | JWT signing secret |
+| `CLIENT_URL` | Server | Frontend application URL |
+| `ANTHROPIC_API_KEY` | Server | Anthropic API authentication |
+| `ANTHROPIC_MODEL` | Server | Anthropic model configuration |
+| `VITE_API_URL` | Client | Backend API base URL |
+
+Refer to the respective `.env.example` files for the exact variables required by your repository.
+
+**Important:** Never commit `.env` files, API keys, database credentials, JWT secrets, or other sensitive configuration details to GitHub.
+
+---
+
+## Security Considerations
+
+The application incorporates the following security mechanisms:
+
+- Password hashing using bcrypt.
+- JWT-based authentication.
+- Role-based access for candidates and employers.
+- Server-side authentication for protected routes.
+- Environment-based API key management.
+- Backend-side integration with external AI services.
+
+### Recommended Production Improvements
+
+Before production deployment, consider:
+
+- Implementing refresh tokens and secure HTTP-only cookies.
+- Adding API rate limiting and request validation.
+- Strengthening input sanitization and centralized error handling.
+- Implementing secure resume upload and document validation.
+- Enforcing HTTPS for all communications.
+- Applying appropriate access controls and data-retention policies.
+- Protecting candidate information and disability-related personal data.
+
+---
+
+## Future Enhancements
+
+Potential improvements to extend the platform include:
+
+- **Advanced Resume Parsing:** Automated PDF and DOCX resume extraction.
+- **Semantic Job Matching:** Integration of embedding-based similarity and advanced recommendation models.
+- **Improved Recommendation Engine:** More detailed accessibility and accommodation compatibility scoring.
+- **Enhanced Employer Dashboard:** Candidate management and recruitment analytics.
+- **Application Tracking:** Real-time application status updates and notifications.
+- **Expanded Accessibility:** Further screen-reader testing and support for additional assistive technologies.
+- **Scalability:** Pagination, caching, and optimized database queries for larger job datasets.
+- **Multilingual Expansion:** Additional languages and broader translation coverage.
+
+---
+
+## Running the Application
+
+Once both frontend and backend servers are running:
+
+| Component | Local URL |
+|---|---|
+| React Frontend | http://localhost:5173 |
+| Express Backend | http://localhost:5000 |
+| Backend Health Check | http://localhost:5000/api/health |
+
+Ensure MongoDB is running and the required environment variables are configured before starting the application.
+
+---
+
+## License
+
+This project is developed as an academic and technical initiative focused on improving employment accessibility for persons with disabilities.
+
+Add an appropriate open-source license if you intend to distribute the project under specific reuse and contribution terms.
+
+---
+
+## Acknowledgements
+
+- MongoDB, Express.js, React.js, and Node.js communities.
+- Anthropic for its AI API.
+- Government of India initiatives supporting persons with disabilities.
+- NIELIT, SWAYAM, NSDC, and other skill-development platforms.
+- Accessibility standards and assistive technology communities.
+
+---
+
+**Karya Siri – Empowering Abilities. Enabling Opportunities.**
